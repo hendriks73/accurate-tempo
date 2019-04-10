@@ -62,7 +62,7 @@ Assuming you have all audio files for the datasets mentioned above in the direct
     accurate_tempo_extraction -a ./lmd ./eball ./ballroom ./mtg \
         -g annotations/ballroom.tsv annotations/train.tsv annotations/valid.tsv
 
-Hint: This is not a fast process... 
+**Hint:** This is not a fast process... 
     
 The ground truth file is optional. If given, only files that also occur in the ground truth are added
 to the created feature `.joblib` files.
@@ -74,7 +74,7 @@ for the test and validation datasets.
 
 As a prerequisite, you need to create feature files as described above. 
 
-Note: Running this locally only makes sense on a GPU and even then it will take very long.
+**Note:** Running this locally only makes sense on a GPU and even then it will take very long.
 
 Each execution of the training script will:
 
@@ -84,9 +84,9 @@ Each execution of the training script will:
 4. Save all predictions as `.joblib` and `.jams` files
 5. Store the resulting models in the model directory
 
-For your convenience, this repository already contains [pre-trained models](./models/)
+For your convenience, this repository already contains [pre-trained models](./models/).
 
-To run the training/reporting locally, you can execute the script [training.py](./accuratetempo/training.py)
+To run the training/reporting, you can execute the script [training.py](./accuratetempo/training.py)
 or the command line script mentioned below with the following arguments:
 
     --test annotations/ballroom.tsv \
@@ -106,21 +106,24 @@ After installation, you may run the training code using the following command li
     accurate_tempo_training [arguments]
 
 For this to succeed you must have first extracted features (for the `--features` argument).
-You can influence the setup of the training, by setting some flags.
 
-- `--log-scale` when set, classes are mapped to tempo values logarithmically
-- `--augment` when set, scale & crop augmentation is used 
-- `--classes C` when set, `C` classes are used
-- `--hop H` when set, the network expects spectrograms created with hop length `H`
-- `--refined` when set, refined versions of `train.tsv` and `valid.tsv` are used, simply by
+You can influence the setup of the training, by setting some flags:
+
+- `--log-scale` if set, classes are mapped to tempo values logarithmically
+- `--augment` if set, scale & crop augmentation is used 
+- `--classes C` if set, `C` classes are used
+- `--hop H` if set, the network expects spectrograms created with hop length `H`
+- `--refined` if set, refined versions of `train.tsv` and `valid.tsv` are used, simply by
 replacing `.tsv` with `_refined.tsv` before loading.
 
 ## Restricted Lag Autocorrelation
 
-After installation you will be able to refine existing annotations or estimates from the command line
+After installation, you will be able to refine existing annotations or estimates from the command line
 using *Restricted Lag Autocorrelation* (RLAC).
 All you need is the original audio files and your estimates either as [JAMS](https://github.com/marl/jams)
-or as `.tsv` (`id \t BPM \n`) files. To do so, execute
+or as `.tsv` (`id \t BPM \n`) files.
+
+To refine your estimates/annotations, execute:
 
     rlac -a AUDIO_DIR [AUDIO_DIR ...] -e ESTIMATES [ESTIMATES ...]
     
@@ -131,8 +134,8 @@ The script either produces either `*_refined.tsv` files or `*_refined.jams` file
 creating new files, you can also choose to update existing `.jams` files with the flag `--update-jams`.
 
 Note that the default settings are rather fine-grained, i.e., it takes very long to run the script.
-If you like to sacrifice BPM resolution for speed, set `--hop` to a larger value (default is `1`).
-In this case `--hop` defines the hop length used for creating the energy/activation function. 
+If you like to sacrifice BPM resolution for speed, set `--hop` to a larger value like `16` (default is `1`).
+Hop defines the hop length used for creating the energy/activation function used by RLAC.
 
 ## License
 
