@@ -1,0 +1,17 @@
+name: accuratetempo
+
+channels:
+    - defaults
+    - conda-forge
+
+dependencies:
+    - python=3.5
+    - pytest
+    - scikit-learn
+    - librosa
+    - h5py
+    - matplotlib
+    - pip
+    - pip:
+        - jams
+        - tensorflow==1.10.1

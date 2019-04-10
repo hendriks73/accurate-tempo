@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+Restricted Lag Autocorrelation (RLAC).
+"""
+
+import argparse
+import sys
+from os import listdir
+from os.path import join, isdir, isfile
+
+from accuratetempo.refinement import refine_ground_truth, refine_jams
+
+
+def main():
+    """rlac"""
+
+    # define parser
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter, description='''
+    The program 'rlac' attempts to refine existing tempo annotations or estimates using Restricted Lag Autocorrelation (RLAC).
+
+    License: GNU Affero General Public License v3
+    ''')
+
+    parser.add_argument('-v', '--version', action='version', version='rlac 0.0.1')
+    parser.add_argument('-a', '--audio-dir', nargs='+', help='directories to search for audio files (.wav, .mp3)', required=True)
+    parser.add_argument('-e', '--estimates', nargs='+', help='estimates, e.g., .tsv files or folder(s) with jams', required=True)
+    parser.add_argument('-t', '--tau', type=float, help='tau', default=0.04)
+    parser.add_argument('--hop', type=int, help='hop length of RMSE function. larger is faster, but decreases BPM resolution', default=1)
+    parser.add_argument('--rmse', type=int, help='length of RMSE window', default=256)
+    parser.add_argument('--update-jams', help='update jam files instead of creating a new \'_refined\' version', action="store_true")
+
+    # parse arguments
+    args = parser.parse_args()
+
+    # sniff for tsv or jams
+    estimate = args.estimates[0]
+    mode = None
+    tsv_files = []
+    if isdir(estimate):
+        # list files
+        tsv_files = [f for f in listdir(estimate) if isfile(join(estimate, f)) and '.tsv' in f]
+        jam_files = [f for f in listdir(estimate) if isfile(join(estimate, f)) and '.jams' in f]
+        if tsv_files:
+            mode = 'tsv'
+        elif jam_files:
+            mode = 'jams'
+    else:
+        if estimate.endswith('.tsv'):
+            mode = 'tsv'
+            tsv_files = [f for f in args.estimates if isfile(f) and f.endswith('.tsv')]
+        elif estimate.endswith('.jams'):
+            mode = 'jams'
+
+    if mode == 'tsv':
+        print('Detected .tsv format.')
+        refine_ground_truth(args.audio_dir, tsv_files, tau=args.tau, hop=args.hop, rmse=args.rmse)
+    elif mode == 'jams':
+        print('Detected .jams format.')
+        refine_jams(args.audio_dir, args.estimates, tau=args.tau, hop=args.hop, rmse=args.rmse, update_jam=args.update_jams)
+    else:
+        print('Failed to sniff either .tsv or jams.', file=sys.stderr)
+
+
+if __name__ == '__main__':
+    main()
