@@ -28,11 +28,12 @@ formatted in a simple tab separated values (`.tsv`) format, with columns `id \t 
 
 **Note:** The file [ballroom.tsv](./annotations/ballroom.tsv) contains tempo annotations derived from the beat annotations
 [published by Florian Krebs](https://github.com/CPJKU/BallroomAnnotations). Using the the measure
-values to find corresponding beats, we computed the median *inter measure interval* (IMI) and converted it to BPM.
+values to find corresponding beats, we computed the median *Inter Measure Interval* (IMI) and converted it to BPM.
 In other words: These are not the original annotations.     
 
 The files [train.tsv](./annotations/train.tsv) and [valid.tsv](./annotations/valid.tsv) contain a 90/10
-split of annotations for MTG Tempo, Eball and LMD Tempo. 
+split of annotations for MTG Tempo, Eball and LMD Tempo. The same is true for their `*_refined.tsv` variants, which
+have been processed with [RLAC](#restricted-lag-autocorrelation).
 
 ## Installation
 
@@ -52,7 +53,8 @@ installing `tensorflow` and not `tensorflow-gpu`.
 
 ## Feature Extraction
 
-To extract features, you can use the code in [feature_extraction.py](./accuratetempo/feature_extraction.py)
+Before training, you need to extract features from the audio files.
+For extraction, you can use the code in [feature_extraction.py](./accuratetempo/feature_extraction.py)
 or the command line script mentioned below.
 The created `.joblib` files are simple dictionaries, containing strings as keys and mel spectrograms as values.
 
