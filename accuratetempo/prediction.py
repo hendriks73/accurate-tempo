@@ -112,6 +112,11 @@ def global_predict(model, input_shape, windowed, ground_truth, features, normali
     results = {}
     model_input_length = input_shape[1]
     for key in ground_truth.labels.keys():
+        if key not in features:
+            logging.warning('Prediction for dataset \'{}\': Spectrogram not found. Id=\'{}\''
+                            .format(ground_truth.name, key))
+            continue
+
         # make sure we don't modify the original!
         spectrogram = np.copy(features[key])
 
@@ -152,9 +157,12 @@ def global_predict(model, input_shape, windowed, ground_truth, features, normali
                 for file in files:
                     zip_handle.write(join(root, file), file)
 
-        zip_file = zipfile.ZipFile(jams_dir + '.zip', 'w', zipfile.ZIP_DEFLATED)
-        zipdir(jams_dir, zip_file)
-        rmtree(jams_dir, ignore_errors=True)
+        if exists(jams_dir):
+            zip_file = zipfile.ZipFile(jams_dir + '.zip', 'w', zipfile.ZIP_DEFLATED)
+            zipdir(jams_dir, zip_file)
+            rmtree(jams_dir, ignore_errors=True)
+        else:
+            logging.warning('Failed to create jams zip file. Jams dir does not exist: {}'.format(jams_dir))
 
     return results
 
