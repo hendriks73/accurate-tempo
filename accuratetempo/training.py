@@ -53,20 +53,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     job_dir = join(job_dir, model_subdir)
     os.makedirs(job_dir, exist_ok=True)
 
-    results_file_name = join(job_dir, 'results-{}.txt'.format(datetime.now().strftime('%Y%m%d-%H%M%S.%f')))
-    logging.basicConfig(filename=results_file_name, filemode='w', format='[%(asctime)s] %(levelname)-8s: %(message)s',
-                        datefmt='%d-%b-%y %H:%M:%S.%s', level=logging.DEBUG)
-
-    # set up logging to console
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    # set a format which is simpler for console use
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)-8s: %(message)s')
-    console.setFormatter(formatter)
-    # add the handler to the root logger
-    logging.getLogger('').addHandler(console)
-
-    print('Writing results to {}'.format(results_file_name))
+    _init_logging(job_dir)
     logging.info('Starting train and predict. {}\n'.format(datetime.now()))
 
     if tf.test.gpu_device_name():
@@ -170,6 +157,29 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     evaluation_reports(models, test_ground_truth)
 
     evaluation_reports(models, valid_ground_truth)
+
+
+def _init_logging(job_dir):
+    """
+    Initialize/configure logging.
+
+    :param job_dir: job dir
+    """
+    results_file_name = join(job_dir, 'results-{}.txt'.format(datetime.now().strftime('%Y%m%d-%H%M%S.%f')))
+    logging.basicConfig(filename=results_file_name,
+                        filemode='w',
+                        format='[%(asctime)s] %(levelname)-8s: %(message)s',
+                        datefmt='%d-%b-%y %H:%M:%S.%s',
+                        level=logging.DEBUG)
+    # set up logging to console
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    # omit timestamps on console
+    formatter = logging.Formatter('%(levelname)-8s: %(message)s')
+    console.setFormatter(formatter)
+    # add the handler to the root logger
+    logging.getLogger('').addHandler(console)
+    print('Writing results to {}'.format(results_file_name))
 
 
 def training(run=0, initial_epoch=0, epochs=5000, patience=50, batch_size=32, lr=0.001, model=None,
