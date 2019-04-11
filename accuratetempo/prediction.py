@@ -57,6 +57,7 @@ def predict_from_models(features, input_shape, model_loaders, normalizer, ground
                 del model
                 K.clear_session()
             else:
+                logging.info('Predictions exist, skipping. File={}'.format(file))
                 predictions = load_predictions(model_loader, dataset_description)
             same_kind_results.append(predictions)
     return results
@@ -161,6 +162,7 @@ def global_predict(model, input_shape, windowed, ground_truth, features, normali
             zip_file = zipfile.ZipFile(jams_dir + '.zip', 'w', zipfile.ZIP_DEFLATED)
             zipdir(jams_dir, zip_file)
             rmtree(jams_dir, ignore_errors=True)
+            logging.info('Exported predictions as jams to {}'.format(zip_file))
         else:
             logging.warning('Failed to create jams zip file. Jams dir does not exist: {}'.format(jams_dir))
 
