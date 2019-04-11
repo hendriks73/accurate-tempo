@@ -164,8 +164,8 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     models[model_name] = same_kind_models
 
     # predict and evaluate for test and validation set
-    predict_from_models(features, input_shape, models, normalizer, valid_ground_truth)
-    predict_from_models(features, input_shape, models, normalizer, test_ground_truth)
+    predict_from_models(features, input_shape, models, normalizer, valid_ground_truth, job_dir=job_dir)
+    predict_from_models(features, input_shape, models, normalizer, test_ground_truth, job_dir=job_dir)
 
     evaluation_reports(models, test_ground_truth)
 

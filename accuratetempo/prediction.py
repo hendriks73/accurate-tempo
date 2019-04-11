@@ -1,23 +1,25 @@
 """
 Predict labels with a model.
 """
+import logging
+import zipfile
 from os import makedirs, walk
-from os.path import exists, join, dirname, basename
+from os.path import exists, join, basename
 from shutil import rmtree
 
 import jams
-import zipfile
 import numpy as np
-import logging
 from sklearn.externals.joblib import dump, load
 from tensorflow.python.keras import backend as K
 
 
-def predict_from_models(features, input_shape, model_loaders, normalizer, ground_truth, overwrite=False):
+def predict_from_models(features, input_shape, model_loaders, normalizer, ground_truth, job_dir='./job',
+                        write_jams=True, overwrite=False):
     """
     Create predictions for a test or validation dataset (i.e., a ground truth) for
     multiple models (passed via model loaders).
 
+    :param job_dir:
     :param overwrite: overwrite prediction
     :param features: dict with id :: features
     :param input_shape: network input shape
@@ -43,8 +45,11 @@ def predict_from_models(features, input_shape, model_loaders, normalizer, ground
             file = prediction_file(model_loader, dataset_description)
             if overwrite or not exists(file):
                 model = model_loader.load()
-                jams_dir = join(dirname(model_loader.file),
-                                'jams/jams_' + dataset_description + '_' + basename(model_loader.file).replace('.h5', ''))
+                if write_jams:
+                    jams_dir = join(job_dir, 'jams/jams_' + dataset_description + '_'
+                                    + basename(model_loader.file).replace('.h5', ''))
+                else:
+                    jams_dir = None
                 windowed = True
                 predictions = global_predict(model, input_shape, windowed, ground_truth, features, normalizer, jams_dir)
                 dump_predictions(predictions, model_loader, dataset_description)
