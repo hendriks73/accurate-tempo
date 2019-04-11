@@ -104,18 +104,22 @@ def global_accuracy(ground_truth, predictions, interpolated=False):
 
         else:
             logging.warning('No prediction for key {}'.format(key))
-            pass
 
         count += 1
-    f_count = float(count)
-    acc0_result = acc0_sum / f_count
-    acc1_result = acc1_sum / f_count
-    acc2_result = acc2_sum / f_count
+    if count == 0:
+        logging.warning('Failed to eval any predictions (no predictions).')
+        return [0., 0., 0., 0., 0.]
+    else:
+        logging.info('Evaluation is based on {} predictons.'.format(count))
+        f_count = float(count)
+        acc0_result = acc0_sum / f_count
+        acc1_result = acc1_sum / f_count
+        acc2_result = acc2_sum / f_count
 
-    mape1_result = mape1_sum / f_count
-    mape2_result = mape2_sum / f_count
+        mape1_result = mape1_sum / f_count
+        mape2_result = mape2_sum / f_count
 
-    return [acc0_result, acc1_result, acc2_result, mape1_result, mape2_result]
+        return [acc0_result, acc1_result, acc2_result, mape1_result, mape2_result]
 
 
 def same_tempo(true_value, estimated_value, factor=1., tolerance=0.04):
