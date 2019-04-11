@@ -26,12 +26,12 @@ def evaluation_reports(models, ground_truth, interpolated=True):
     sorted_names = list(models.keys())
     sorted_names.sort()
 
-    logging.info('=== Evaluation for dataset \'{}\' ==='.format(ground_truth.name))
+    logging.info('Evaluation for dataset \'{}\'.'.format(ground_truth.name))
     for model_name in sorted_names:
         same_kind_models = models[model_name]
         accuracies = []
         for run, model_loader in enumerate(same_kind_models):
-            logging.info('{}. run {}'.format(run, model_name))
+            logging.info('{}. run. Using model=\'{}\''.format(run, model_name))
             model = model_loader.load()
             predictions = load_predictions(model_loader, ground_truth.name)
             acc = global_accuracy(ground_truth, predictions, interpolated=interpolated)
@@ -110,7 +110,7 @@ def global_accuracy(ground_truth, predictions, interpolated=False):
         logging.warning('Failed to eval any predictions (no predictions).')
         return [0., 0., 0., 0., 0.]
     else:
-        logging.info('Evaluation is based on {} predictons.'.format(count))
+        logging.debug('Evaluation is based on {} predictons.'.format(count))
         f_count = float(count)
         acc0_result = acc0_sum / f_count
         acc1_result = acc1_sum / f_count

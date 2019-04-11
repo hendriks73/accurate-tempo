@@ -57,7 +57,7 @@ def predict_from_models(features, input_shape, model_loaders, normalizer, ground
                 del model
                 K.clear_session()
             else:
-                logging.info('Predictions exist, skipping. File={}'.format(file))
+                logging.info('{}. run. Predictions exist. Loading from file {}'.format(run, file))
                 predictions = load_predictions(model_loader, dataset_description)
             same_kind_results.append(predictions)
     return results

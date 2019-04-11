@@ -28,10 +28,11 @@ from accuratetempo.prediction import predict_from_models
 
 
 def train_and_predict(job_dir, model_dir, features, train, valid, test,
-                      log_scale=False, augment=False, refined=False, classes=256, hop=512):
+                      log_scale=False, augment=False, refined=False, classes=256, hop=512, verbose=True):
     """
     Main function to execute training and prediction.
 
+    :param verbose: if ``True`` we are more chatty (log level DEBUG)
     :param hop: hop length of features
     :param classes: number of different classes we want to use (for BPM 30-285)
     :param refined: use refined annotations during training and validation
@@ -53,7 +54,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     job_dir = join(job_dir, model_subdir)
     os.makedirs(job_dir, exist_ok=True)
 
-    _init_logging(job_dir)
+    _init_logging(job_dir, verbose)
     logging.info('Starting train and predict. {}\n'.format(datetime.now()))
 
     if tf.test.gpu_device_name():
@@ -62,6 +63,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
         logging.warning("Failed to find default GPU.")
 
     logging.info('======================')
+    logging.info(' verbose   = {}'.format(verbose))
     logging.info(' log_scale = {}'.format(log_scale))
     logging.info(' augment   = {}'.format(augment))
     logging.info(' refined   = {}'.format(refined))
@@ -97,7 +99,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
 
     features_file = features.format(hop)
     features = joblib.load(features_file)
-    logging.debug('Loaded features from {}'.format(features_file))
+    logging.info('Loaded features from {}'.format(features_file))
 
     logging.debug('Input shape: {}'.format(input_shape))
     train_loader = create_mel_sample_loader(features,
@@ -108,7 +110,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
                                             shape=input_shape,
                                             random_offset=False,
                                             normalizer=normalizer)
-    logging.info('Loading ground truth...')
+    logging.info('Loading ground truths...')
     train_ground_truth = GroundTruth(train, nb_classes=classes, log_scale=log_scale)
     logging.debug('Loaded {} training annotations from {} (log_scale={}).'
         .format(len(train_ground_truth.labels), train, log_scale))
@@ -132,7 +134,7 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     models = {}
     same_kind_models = []
     for run in range(runs):
-        logging.info('Creating model for run {}.'.format(run))
+        logging.debug('Creating model for run {}.'.format(run))
         model = create_vgg_like_model(input_shape=input_shape, filters=filters, dropout=dropout)
         model_loader = training(run=run, epochs=epochs, patience=patience, batch_size=batch_size, lr=lr,
                                 model=model,
@@ -155,11 +157,10 @@ def train_and_predict(job_dir, model_dir, features, train, valid, test,
     predict_from_models(features, input_shape, models, normalizer, test_ground_truth, job_dir=job_dir)
 
     evaluation_reports(models, test_ground_truth)
-
     evaluation_reports(models, valid_ground_truth)
 
 
-def _init_logging(job_dir):
+def _init_logging(job_dir, verbose):
     """
     Initialize/configure logging.
 
@@ -173,7 +174,10 @@ def _init_logging(job_dir):
                         level=logging.DEBUG)
     # set up logging to console
     console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
+    if verbose:
+        console.setLevel(logging.DEBUG)
+    else:
+        console.setLevel(logging.INFO)
     # omit timestamps on console
     formatter = logging.Formatter('%(levelname)-8s: %(message)s')
     console.setFormatter(formatter)
@@ -212,8 +216,10 @@ def training(run=0, initial_epoch=0, epochs=5000, patience=50, batch_size=32, lr
     # and save to model_dir
     model_file = join(model_dir, 'model_{}_run={}.h5'.format(model.name, run))
     if exists(model_file):
-        logging.info('Model exist, skipping training. File={}'.format(model_file))
+        logging.info('{}. run. Model exist, skipping training. Model file: {}'.format(run, model_file))
         return ModelLoader(model_file, model.name)
+
+    logging.info('Run {}. Training model \'{}\''.format(run, model.name))
 
     # Write an empty model file, to signal that we are on this!
     # I.e. other, parallel processed will not try to train this run of this model.
@@ -230,7 +236,6 @@ def training(run=0, initial_epoch=0, epochs=5000, patience=50, batch_size=32, lr
     binarizer.fit([[c] for c in range(train_ground_truth.nb_classes)])
     model.compile(loss='categorical_crossentropy', optimizer=(Adam(lr=lr)), metrics=['accuracy'])
 
-    logging.debug('Run {}, {}, params={}'.format(run, model.name, model.count_params()))
     model.summary(print_fn=logging.info)
 
     train_generator = DataGenerator(train_ground_truth,
@@ -350,7 +355,11 @@ Note that seven runs are conducted.''')
         help='feature hop length (256|512)',
         required=True
     )
-
+    parser.add_argument(
+        '--verbose',
+        help='more console messages',
+        action="store_true"
+    )
     args = parser.parse_args()
     arguments = args.__dict__
     return arguments
