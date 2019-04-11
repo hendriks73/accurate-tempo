@@ -74,19 +74,20 @@ to the created feature `.joblib` files.
 The provided script will train the networks and then report accuracy scores (Acc0, Acc1, Acc2, Mape1, and Mape2)
 for the test and validation datasets.
 
-As a prerequisite, you need to create feature files as described above. 
+As a prerequisite, you need to create feature files as [described above](#feature-extraction). 
 
-**Note:** Running this locally only makes sense on a GPU and even then it will take very long.
+**Note:** Running this locally only makes sense on a computer with GPU and even then it will take very long.
 
 Each execution of the training script will:
 
 1. Train 7 models based on the same data ("runs")
 2. Evaluate against the provided validation dataset
 3. Evaluate against the provided test dataset ("ballroom")
-4. Save all predictions as `.joblib` and `.jams` files
+4. Save all predictions as `.joblib` (with the models) and `.jams` files (in the job directory)
 5. Store the resulting models in the model directory
 
-For your convenience, this repository already contains [pre-trained models](./models/).
+**Hint:** For your convenience, this repository already contains [pre-trained models](./models/), so by pointing
+the script below to `./models` as model dir, you can skip training.
 
 To run the training/reporting, you can execute the script [training.py](./accuratetempo/training.py)
 or the command line script mentioned below with the following arguments:
@@ -117,6 +118,8 @@ You can influence the setup of the training, by setting some flags:
 - `--hop H` if set, the network expects spectrograms created with hop length `H`
 - `--refined` if set, refined versions of `train.tsv` and `valid.tsv` are used, simply by
 replacing `.tsv` with `_refined.tsv` before loading.
+
+All output from the script will be sent both to the console and a log file in your job directory.
 
 ## Restricted Lag Autocorrelation
 
